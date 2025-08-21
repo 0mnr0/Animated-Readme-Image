@@ -28,7 +28,8 @@ def StartCreatingReadme(ReadmeOptions):
                                  {"width": ReadmeOptions.width, "height": ReadmeOptions.height},
                                  duration=ReadmeOptions.length,
                                  IsPhoto = ReadmeOptions.IsPhoto,
-                                 debug=ReadmeOptions.debug)
+                                 debug=ReadmeOptions.debug,
+                                 quality=ReadmeOptions.quality)
 
     Thread(target=runInBg, args=(ReadmeOptions,)).start()
 
@@ -36,8 +37,11 @@ def StartCreatingReadme(ReadmeOptions):
 def myReadme():
     ReadmeOptions = gitReader.argsCollector(request)
     person = ReadmeOptions.person
-    print("ReadmeOptions: ", ReadmeOptions)
 
+    if type(ReadmeOptions.lockfile) == str:
+        return send_file(ReadmeOptions.lockfile, mimetype="image/webp")
+
+    print("ReadmeOptions: ", ReadmeOptions)
     if ReadmeOptions.length is None and not ReadmeOptions.IsPhoto:
         if ReadmeDatabase.IsCooked(person):
             return send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/apng")

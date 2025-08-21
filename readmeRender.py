@@ -121,6 +121,8 @@ def GetCookedFile(userName, debug):
     for el in elements:
         url = el["src"]
         try:
+            if ("https://" not in url) and ("github.com" not in url):
+                url = f"https://github.com/{userName}/{userName}/raw/refs/heads/main/files/{url}"
             response = requests.get(url, stream=True)
             filename = url.split("/")[-1]
             filename = re.sub(r'[\\/:*?"<>|]', '', filename)
@@ -138,7 +140,7 @@ def GetCookedFile(userName, debug):
                     f.write(chunk)
 
             # заменить src в html
-            el["src"] = f"resourses/{filename}"
+            el["src"] = os.path.abspath(f"userFiles/{userName}/resourses/{filename}")
         except Exception as e:
             raise e
             print(f"Не удалось скачать {url}: {e}")
@@ -148,7 +150,7 @@ def GetCookedFile(userName, debug):
     return file
 
 
-def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug):
+def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, quality):
     try:
         MaxSteps = 6 if IsPhoto else 7
         print("IN ARGS:",userName, WidthAndHeight, duration, IsPhoto, debug)
@@ -196,17 +198,14 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug):
             page = context.new_page()
 
             print("Content is loading...")
-
             ReadmeDatabase.SetReadmeState(userName, f"[Step 4/{MaxSteps}] Opened layout, waiting for network idle (1/2)...")
-            page.goto(f"file://{html_file}", wait_until="networkidle")
-            ReadmeDatabase.SetReadmeState(userName, f"[Step 4/{MaxSteps}] Opened layout, waiting for network idle (2/2)...")
-            page.wait_for_load_state("networkidle")
+            try:page.goto(f"file://{html_file}", wait_until="domcontentloaded")
+            except Exception as e:
+                page.goto(f"file://{html_file}")
             ReadmeDatabase.SetReadmeState(userName, f"[Step 5/{MaxSteps}] Recording... ")
             page.evaluate("""
                 document.querySelectorAll('video').forEach(v => { v.currentTime = 0; v.play(); });
             """)
-            recordStartTime = time.time()
-            loadingTime = recordStartTime - globalStartTime
 
             if IsPhoto:
                 buffer = page.screenshot()
@@ -217,6 +216,8 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug):
                 ReadmeDatabase.SetCurrentReadme(userName, f"userFiles/{userName}/{userName}.webp")
                 return
 
+            recordStartTime = time.time()
+            loadingTime = recordStartTime - globalStartTime
             time.sleep(2 if IsPhoto else duration)
             page.close()
             if not IsPhoto: page.video.save_as(output_file)  # сохраняем в нужный файл
@@ -230,7 +231,7 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug):
         ReadmeDatabase.SetReadmeState(userName, f"[Step 6/{MaxSteps}] Captured. Cutting non-loaded area...")
         output_file = cutVideo(output_file, f"userFiles/{userName}/{userName}_cutted.webm", loadingTime)
         ReadmeDatabase.SetReadmeState(userName, f"[Step 7/{MaxSteps}] Converting into animated image...")
-        output_file = webm_to_webp(output_file, f"userFiles/{userName}/{userName}.webp", fps=24, quality=100)
+        output_file = webm_to_webp(output_file, f"userFiles/{userName}/{userName}.webp", fps=24, quality=quality)
 
         SetCookedStatus(userName)
         ReadmeDatabase.SetCurrentReadme(userName, output_file)
