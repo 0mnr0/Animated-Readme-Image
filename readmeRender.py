@@ -1,7 +1,8 @@
 import subprocess
 from datetime import datetime
 
-
+import random, string
+import re
 import shutil
 from bs4 import BeautifulSoup
 from PIL import Image
@@ -31,7 +32,7 @@ def webm_to_webp(input_file: str, output_file: str, fps: int = 24, quality: int 
     :param scale: масштаб (ширина:высота, -1 = автоподбор)
     """
     cmd = [
-        "ffmpeg",
+        "ffmpeg", "-y",
         "-i", input_file,
         "-vf", f"fps={fps},scale=-1:-1:flags=lanczos",
         "-loop", "0",
@@ -96,6 +97,12 @@ def SetCookedStatus(userName):
     ReadmeDatabase.SetCooked(userName, True)
 
 
+
+def randomword(length):
+   letters = string.ascii_lowercase
+   return ''.join(random.choice(letters) for i in range(length))
+
+
 def GetCookedFile(userName, debug):
     shutil.rmtree(f"userFiles/{userName}/resourses", ignore_errors=True)
     if not os.path.exists(f"userFiles/{userName}/resourses"):
@@ -110,11 +117,20 @@ def GetCookedFile(userName, debug):
     soup = BeautifulSoup(fileContent, "html.parser")
     elements = soup.find_all(src=True)
 
+    generatedWords = []
     for el in elements:
         url = el["src"]
         try:
             response = requests.get(url, stream=True)
             filename = url.split("/")[-1]
+            filename = re.sub(r'[\\/:*?"<>|]', '', filename)
+            if "github-readme-stats.vercel.app" in url:
+                newFilename = randomword(12)
+                while newFilename in generatedWords:
+                    newFilename = randomword(12)
+                generatedWords.append(newFilename)
+                filename = f"{newFilename}.svg"
+
             local_path = f"userFiles/{userName}/resourses/{filename}"
 
             with open(local_path, "wb") as f:
@@ -124,15 +140,13 @@ def GetCookedFile(userName, debug):
             # заменить src в html
             el["src"] = f"resourses/{filename}"
         except Exception as e:
+            raise e
             print(f"Не удалось скачать {url}: {e}")
 
     with open(f"userFiles/{userName}/{userName}.html", "w", encoding="utf-8") as f:
         f.write(str(soup))
-
-
     return file
 
-GetCookedFile("0mnr0", False)
 
 def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug):
     try:
@@ -168,11 +182,8 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug):
                 '--disable-gpu',
                 '--disable-software-rasterizer',
                 '--disable-extensions',
-                '--disable-background-networking',
-                '--disable-sync',
                 '--disable-translate',
                 '--disable-plugins',
-                '--disable-images',
                 '--disable-accelerated-2d-canvas',
             ])
             ReadmeDatabase.SetReadmeState(userName, f"[Step 4/{MaxSteps}] Opened layout, waiting for network idle...")
@@ -186,7 +197,9 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug):
 
             print("Content is loading...")
 
+            ReadmeDatabase.SetReadmeState(userName, f"[Step 4/{MaxSteps}] Opened layout, waiting for network idle (1/2)...")
             page.goto(f"file://{html_file}", wait_until="networkidle")
+            ReadmeDatabase.SetReadmeState(userName, f"[Step 4/{MaxSteps}] Opened layout, waiting for network idle (2/2)...")
             page.wait_for_load_state("networkidle")
             ReadmeDatabase.SetReadmeState(userName, f"[Step 5/{MaxSteps}] Recording... ")
             page.evaluate("""

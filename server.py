@@ -69,7 +69,7 @@ def event_stream(userName):
 @app.route('/readmeStatus', methods=['GET'])
 def readmeStatus():
     userName = request.args.get('person')
-    return Response(event_stream(userName), mimetype="text/event-stream")
+    return Response(event_stream(userName), mimetype="text/event-stream", headers={"Cache-Control": "no-cache", 'X-Accel-Buffering': 'no'})
 
-
-app.run(port=7777, debug=True, use_reloader=False)
+if __name__ == '__main__':
+    app.run(port=7777, debug=True, use_reloader=False)
