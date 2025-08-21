@@ -13,6 +13,21 @@ app = Flask(__name__, static_folder='web/static', template_folder='web')
 flask_cors.CORS(app)
 
 
+WHITELISTED_USERS = [
+    "0mnr0"
+]
+
+WHITELIST_SOON = [
+    "cyrsiansk",
+    "AysCRvbc",
+    "dinalt",
+    "kihaas",
+    "Kekovich-kw"
+]
+
+
+
+
 @app.route('/')
 def index():
     return "Hi!"
@@ -37,6 +52,21 @@ def StartCreatingReadme(ReadmeOptions):
 def myReadme():
     ReadmeOptions = gitReader.argsCollector(request)
     person = ReadmeOptions.person
+
+    # Пока всё сырое, даже в своём readme я зафиксировал фото, мне ещё нужно чуть чуть времени сделать всё стабильнее и потом пустить в ход.
+    # Скорее всего успею к 1му сентября
+    if person is None:
+        return "Please Specify Person", 400
+
+    if person != "0mnr0":
+        returnStr = "Вы должны быть в белом списке чтобы получить свой readme."
+
+        if person in WHITELIST_SOON:
+            returnStr += " Скоро я разрешу доступ к api этим людям:<br><br>"
+            for _user_ in WHITELIST_SOON:
+                returnStr += f" > {_user_}<br>"
+
+        return returnStr, 403
 
     if type(ReadmeOptions.lockfile) == str:
         return send_file(ReadmeOptions.lockfile, mimetype="image/webp")

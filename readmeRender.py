@@ -60,18 +60,23 @@ def interpolate_webm(input_file, output_file, newFps = 30):
     subprocess.run(cmd, check=True)
     return output_file
 
-def cutVideo(input_file, output_file, start):
-    # ffmpeg -ss 1.548 -i input.webm -c copy output.webm
+
+def cutVideo(input_file, output_file, start_time):
+    cutTime = str(start_time)
+    if len(cutTime) > 5:
+        cutTime = cutTime[:5]
+
     cmd = [
         "ffmpeg",
         "-y",
-        "-ss", str(start),
         "-i", input_file,
+        "-ss", cutTime,
         "-c", "copy",
+        "-copyts",
+        "-start_at_zero",
         output_file
     ]
-
-    subprocess.run(cmd, check=True)
+    subprocess.run(cmd)
     return output_file
 
 
@@ -199,9 +204,10 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, quality):
 
             print("Content is loading...")
             ReadmeDatabase.SetReadmeState(userName, f"[Step 4/{MaxSteps}] Opened layout, waiting for network idle (1/2)...")
-            try:page.goto(f"file://{html_file}", wait_until="domcontentloaded")
+            try:page.goto(f"file://{html_file}", wait_until="networkidle")
             except Exception as e:
                 page.goto(f"file://{html_file}")
+            time.sleep(2)
             ReadmeDatabase.SetReadmeState(userName, f"[Step 5/{MaxSteps}] Recording... ")
             page.evaluate("""
                 document.querySelectorAll('video').forEach(v => { v.currentTime = 0; v.play(); });
