@@ -17,7 +17,9 @@ def argsCollector(request):
         "fps": request.args.get('fps'),
         "noCache": request.args.get('nocache'),
         "length": request.args.get('length'),
-        "debug": request.args.get('debug')
+        "debug": request.args.get('debug'),
+        "quality": request.args.get('quality'),
+        "lockfile": request.args.get('lockfile'),
     }
     args = SimpleNamespace(**args)
 
@@ -35,7 +37,7 @@ def argsCollector(request):
         args.fps = int(args.fps)
 
     if args.length is not None:
-        args.length = int(args.length)
+        args.length = float(args.length)
 
     args.IsPhoto = (args.IsPhoto == "image" or args.IsPhoto == "photo") # its "type" key, not "isVideo". AND ITS WORKING "AS IS"
 
@@ -48,6 +50,15 @@ def argsCollector(request):
         args.debug = args.debug == "true"
     else:
         args.debug = False
+
+    if args.quality is not None and str(args.quality).isdigit():
+        args.quality = int(args.quality)
+    else:
+        args.quality = 90
+
+    if args.lockfile is None:
+        args.lockfile = False
+
 
 
 
