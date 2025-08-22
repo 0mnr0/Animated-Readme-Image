@@ -8,18 +8,22 @@ def haveLayout(userName):
     return return_code == 200
 
 
-def argsCollector(args):
+def argsCollector(inputArgs):
+    if hasattr(inputArgs, "args"):
+        # Если случайно передали request, возьмём request.args
+        inputArgs = inputArgs.args
+
     args = {
-        "person": args.get('person'),
-        "width": args.get('width'),
-        "height": args.get('height'),
-        "IsPhoto": args.get('type'),
-        "fps": args.get('fps'),
-        "noCache": args.get('nocache'),
-        "length": args.get('length'),
-        "debug": args.get('debug'),
-        "quality": args.get('quality'),
-        "lockfile": args.get('lockfile'),
+        "person": inputArgs.get('person'),
+        "width": inputArgs.get('width'),
+        "height": inputArgs.get('height'),
+        "IsPhoto": inputArgs.get('type'),
+        "fps": inputArgs.get('fps'),
+        "noCache": inputArgs.get('nocache'),
+        "length": inputArgs.get('length'),
+        "debug": inputArgs.get('debug'),
+        "quality": inputArgs.get('quality'),
+        "lockfile": inputArgs.get('lockfile'),
     }
     args = SimpleNamespace(**args)
 
