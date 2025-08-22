@@ -19,6 +19,8 @@ from playwright.sync_api import sync_playwright
 import time
 import os
 
+
+timeFormat = "%m-%d_%H.%M.%S"
 isLinux = os.name == "posix"
 if not os.path.exists("userFiles"):
     os.mkdir("userFiles")
@@ -97,11 +99,13 @@ def YourselfCleaner(userName, output_file):
 
 
 def SetCookedStatus(userName):
-    timeStamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+    timeStamp = datetime.now().strftime("%Y-%m-%d %H:%M") # For DB (not filename)
     ReadmeDatabase.SetReadmeTime(userName, timeStamp)
     ReadmeDatabase.SetReadmeState(userName, "Cooked")
     ReadmeDatabase.SetCooked(userName, True)
 
+
+    return
     oldReadmePath = ReadmeDatabase.GetCurrentReadme(userName)
     if oldReadmePath is not None:
         try:
@@ -167,6 +171,7 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, quality):
         MaxSteps = 6 if IsPhoto else 7
         print("IN ARGS:",userName, WidthAndHeight, duration, IsPhoto, debug)
         # WidthAndHeight = {"width": 910, "height": 513}
+        previousReadmePath = ReadmeDatabase.GetCurrentReadme(userName)
 
 
         ReadmeDatabase.SetCooked(userName, False)
@@ -225,7 +230,7 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, quality):
                 ReadmeDatabase.SetReadmeState(userName, f"[Step 6/{MaxSteps}] Captured. Saving screenshot to webp...")
                 img = Image.open(io.BytesIO(buffer)).convert("RGB")
                 img.save(f"userFiles/{userName}/{userName}.webp", "webp")
-                creationTime = datetime.now().strftime("%m-%d_%H.%M")
+                creationTime = datetime.now().strftime(timeFormat)
 
                 if os.path.exists(f"userFiles/{userName}/{userName}_{creationTime}.webp"):
                     os.remove(f"userFiles/{userName}/{userName}_{creationTime}.webp")
@@ -250,7 +255,7 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, quality):
         output_file = cutVideo(output_file, f"userFiles/{userName}/{userName}_cutted.webm", loadingTime)
         ReadmeDatabase.SetReadmeState(userName, f"[Step 7/{MaxSteps}] Converting into animated image...")
         output_file = webm_to_webp(output_file, f"userFiles/{userName}/{userName}.webp", fps=24, quality=quality)
-        creationTime = datetime.now().strftime("%m-%d_%H.%M")
+        creationTime = datetime.now().strftime(timeFormat)
         renamedFile = f"userFiles/{userName}/{userName}_{creationTime}.webp"
         if os.path.exists(renamedFile):
             os.remove(renamedFile)

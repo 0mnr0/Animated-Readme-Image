@@ -55,8 +55,8 @@ def BackgroundUpdater():
                                     quality=ReadmeOptions.quality)
             time.sleep(3)
 
-bgCooker = Thread(target=BackgroundUpdater)
-bgCooker.start()
+#bgCooker = Thread(target=BackgroundUpdater)
+#bgCooker.start()
 
 
 
@@ -124,19 +124,24 @@ def importApp(app):
 
 
         previousFileNotExist = (ReadmeDatabase.GetCurrentReadme(person) is not None and not os.path.exists(ReadmeDatabase.GetCurrentReadme(person)))
+        print("previousFileNotExist:", previousFileNotExist)
 
         if ReadmeDatabase.IsFreshReadme(person) and not previousFileNotExist and not ReadmeOptions.noCache:
             return send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/apng")
 
 
         StartCreatingReadme(ReadmeOptions)
-        return (
-            gotoStatusStream(person)
-            if ReadmeOptions.noCache or previousFileNotExist
-            else send_file(
-                ReadmeDatabase.GetCurrentReadme(person), mimetype="image/webp"
-            )
-        )
+
+
+        if ReadmeOptions.noCache or previousFileNotExist:
+            return gotoStatusStream(person)
+        else:
+            response = make_response(send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/webp"))
+            response.headers["Cache-Control"] = "public, max-age=3600"
+            return response
+
+
+
 
 
     def event_stream(userName):
