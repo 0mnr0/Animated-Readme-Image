@@ -35,7 +35,6 @@ def BackgroundUpdater():
 
     isSomeOneCooked = False
     while True:
-        print("waiting:", str(20*60 if isSomeOneCooked else RECREATION_TIME)+"s | "+str(isSomeOneCooked))
         time.sleep(20*60 if isSomeOneCooked else RECREATION_TIME)
 
         for user in ReadmeDatabase.GetAllUsers():
@@ -103,9 +102,7 @@ def importApp(app):
         if not ReadmeOptions.lockfile:
             SavingReadmeOptions = SimpleNamespace(**vars(ReadmeOptions))
             SavingReadmeOptions.noCache = False
-            print("SavingReadmeOptions:", SavingReadmeOptions)
             ReadmeDatabase.UpdateReadmeLineOptions(person, SavingReadmeOptions) # Save Options to Auto Update
-            print("ReadmeOptions:", ReadmeOptions)
 
         if not ReadmeDatabase.IsUserExists(person):
             ReadmeDatabase.CreateNewUser(person)
