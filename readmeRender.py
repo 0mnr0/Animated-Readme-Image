@@ -225,7 +225,7 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, quality):
                 ReadmeDatabase.SetReadmeState(userName, f"[Step 6/{MaxSteps}] Captured. Saving screenshot to webp...")
                 img = Image.open(io.BytesIO(buffer)).convert("RGB")
                 img.save(f"userFiles/{userName}/{userName}.webp", "webp")
-                creationTime = datetime.now().strftime("%Y-%m-%d %H:%M")
+                creationTime = datetime.now().strftime("%m-%d_%H.%M")
                 os.rename(f"userFiles/{userName}/{userName}.webp", f"userFiles/{userName}/{userName}_{creationTime}.webp")
 
 
@@ -249,7 +249,7 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, quality):
         output_file = cutVideo(output_file, f"userFiles/{userName}/{userName}_cutted.webm", loadingTime)
         ReadmeDatabase.SetReadmeState(userName, f"[Step 7/{MaxSteps}] Converting into animated image...")
         output_file = webm_to_webp(output_file, f"userFiles/{userName}/{userName}.webp", fps=24, quality=quality)
-        creationTime = datetime.now().strftime("%m-%d_%H:%M")
+        creationTime = datetime.now().strftime("%m-%d_%H.%M")
         renamedFile = f"userFiles/{userName}/{userName}_{creationTime}.webp"
         os.rename(output_file, renamedFile)
 
