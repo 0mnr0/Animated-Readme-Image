@@ -8,18 +8,18 @@ def haveLayout(userName):
     return return_code == 200
 
 
-def argsCollector(request):
+def argsCollector(args):
     args = {
-        "person": request.args.get('person'),
-        "width": request.args.get('width'),
-        "height": request.args.get('height'),
-        "IsPhoto": request.args.get('type'),
-        "fps": request.args.get('fps'),
-        "noCache": request.args.get('nocache'),
-        "length": request.args.get('length'),
-        "debug": request.args.get('debug'),
-        "quality": request.args.get('quality'),
-        "lockfile": request.args.get('lockfile'),
+        "person": args.get('person'),
+        "width": args.get('width'),
+        "height": args.get('height'),
+        "IsPhoto": args.get('type'),
+        "fps": args.get('fps'),
+        "noCache": args.get('nocache'),
+        "length": args.get('length'),
+        "debug": args.get('debug'),
+        "quality": args.get('quality'),
+        "lockfile": args.get('lockfile'),
     }
     args = SimpleNamespace(**args)
 
@@ -59,7 +59,9 @@ def argsCollector(request):
     if args.lockfile is None:
         args.lockfile = False
 
-
-
-
     return args
+
+
+def argsToUrl(request):
+    args = request.args.to_dict()
+    return "&".join([f"{key}={value}" for key, value in args.items()])

@@ -1,11 +1,20 @@
+import json
 from datetime import datetime, timedelta
-from operator import truediv
-
+from types import SimpleNamespace
 import pymongo
 
 allDataBases = pymongo.MongoClient("mongodb://localhost:27017/")
 readmes = allDataBases["AnimatedReadme"]
 
+ReadmeRefreshInterval_Minutes = 240 # 4 Hours
+
+
+
+def NameSpaceToDict(namespace):
+    return json.dumps(vars(namespace), ensure_ascii=False, indent=4)
+
+def DictToNameSpace(dct):
+    return json.loads(dct, object_hook=lambda d: SimpleNamespace(**d))
 
 class DBSHelper:
     @staticmethod
@@ -79,7 +88,7 @@ class ReadmeDatabase:
         if not ReadmeDatabase.IsUserExists(userName): return False
         UserObject = Users.find_one({"username": userName})
         dt = datetime.strptime(UserObject.get("ReadmeTime"), "%Y-%m-%d %H:%M")
-        return datetime.now() - dt < timedelta(hours=4)
+        return datetime.now() - dt < timedelta(hours=ReadmeRefreshInterval_Minutes/60)
 
     @staticmethod
     def SetCooked(userName, state):
@@ -92,7 +101,27 @@ class ReadmeDatabase:
         if not ReadmeDatabase.IsUserExists(userName): return False
         return Users.find_one({"username": userName}).get("cooked")
 
+    @staticmethod
+    def IsAnyOneCooking():
+        return len(list(Users.find({"cooked": False}))) > 0 # Someone is not "cooked" yet, so he`s cooking right now
 
-for user in ReadmeDatabase.GetAllUsers():
-    ReadmeDatabase.SetCooked(user.get("username"), True)
-    ReadmeDatabase.SetReadmeState(user.get("username"), " [ SINCE SERVER RELOAD WAS NOT ANY EVENT ABOUT IMAGE REFRESH ]")
+    @staticmethod
+    def UpdateReadmeLineOptions(userName, options):
+        if not ReadmeDatabase.IsUserExists(userName): return None
+        Users.update_one({"username": userName}, {"$set": {"options": NameSpaceToDict(options)}})
+        return True
+
+    @staticmethod
+    def GetReadmeLineOptions(userName):
+        if not ReadmeDatabase.IsUserExists(userName): return None
+        return DictToNameSpace(Users.find_one({"username": userName}).get("options"))
+
+
+
+for __tmp__user__ in ReadmeDatabase.GetAllUsers():
+    ReadmeDatabase.SetCooked(__tmp__user__.get("username"), True)
+    ReadmeDatabase.SetReadmeState(__tmp__user__.get("username"), " [ SINCE SERVER RELOAD WAS NOT ANY EVENT ABOUT IMAGE REFRESH ]")
+
+
+
+print("0mnr0 Options: ", ReadmeDatabase.GetReadmeLineOptions("0mnr0"))

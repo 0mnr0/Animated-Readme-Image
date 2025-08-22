@@ -7,9 +7,7 @@ from database import *
 from threading import Thread
 import gitReader
 
-
-
-
+RECREATION_TIME = ReadmeRefreshInterval_Minutes # Minutes
 
 
 WHITELISTED_USERS = [
@@ -23,6 +21,44 @@ WHITELIST_SOON = [
     "kihaas",
     "Kekovich-kw"
 ]
+
+
+RECREATION_TIME *= 60 # Convert into minutes
+def BackgroundUpdater():
+    if (
+        RECREATION_TIME == False
+        or RECREATION_TIME == 0
+        or RECREATION_TIME is None
+        or RECREATION_TIME == -1
+    ): return
+
+
+    isSomeOneCooked = False
+    while True:
+        print("waiting:", str(20*60 if isSomeOneCooked else RECREATION_TIME)+"s | "+str(isSomeOneCooked))
+        time.sleep(20*60 if isSomeOneCooked else RECREATION_TIME)
+
+        for user in ReadmeDatabase.GetAllUsers():
+            userName = user.get("username")
+
+            isSomeOneCooked = ReadmeDatabase.IsAnyOneCooking()
+            if isSomeOneCooked:
+                continue
+                
+            ReadmeDatabase.SetCooked(userName, False)
+            ReadmeOptions = ReadmeDatabase.GetReadmeLineOptions(user.get("username"))
+
+            readmeRender.record_apng(ReadmeOptions.person,
+                                    {"width": ReadmeOptions.width, "height": ReadmeOptions.height},
+                                    duration=ReadmeOptions.length,
+                                    IsPhoto=ReadmeOptions.IsPhoto,
+                                    debug=ReadmeOptions.debug,
+                                    quality=ReadmeOptions.quality)
+            time.sleep(3)
+
+bgCooker = Thread(target=BackgroundUpdater)
+bgCooker.start()
+
 
 
 def importApp(app):
@@ -43,7 +79,7 @@ def importApp(app):
 
     @app.route('/myReadme', methods=['GET'])
     def myReadme():
-        ReadmeOptions = gitReader.argsCollector(request)
+        ReadmeOptions = gitReader.argsCollector(request.args)
         person = ReadmeOptions.person
 
         # Пока всё сырое, даже в своём readme я зафиксировал фото, мне ещё нужно чуть чуть времени сделать всё стабильнее и потом пустить в ход.
@@ -62,7 +98,15 @@ def importApp(app):
             return returnStr, 403
 
 
-        print("IsUserExists:", ReadmeDatabase.IsUserExists(person))
+
+
+        if not ReadmeOptions.lockfile:
+            SavingReadmeOptions = SimpleNamespace(**vars(ReadmeOptions))
+            SavingReadmeOptions.noCache = False
+            print("SavingReadmeOptions:", SavingReadmeOptions)
+            ReadmeDatabase.UpdateReadmeLineOptions(person, SavingReadmeOptions) # Save Options to Auto Update
+            print("ReadmeOptions:", ReadmeOptions)
+
         if not ReadmeDatabase.IsUserExists(person):
             ReadmeDatabase.CreateNewUser(person)
             StartCreatingReadme(ReadmeOptions)

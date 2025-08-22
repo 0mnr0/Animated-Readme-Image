@@ -226,6 +226,9 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, quality):
                 img = Image.open(io.BytesIO(buffer)).convert("RGB")
                 img.save(f"userFiles/{userName}/{userName}.webp", "webp")
                 creationTime = datetime.now().strftime("%m-%d_%H.%M")
+
+                if os.path.exists(f"userFiles/{userName}/{userName}_{creationTime}.webp"):
+                    os.remove(f"userFiles/{userName}/{userName}_{creationTime}.webp")
                 os.rename(f"userFiles/{userName}/{userName}.webp", f"userFiles/{userName}/{userName}_{creationTime}.webp")
 
 
@@ -249,6 +252,8 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, quality):
         output_file = webm_to_webp(output_file, f"userFiles/{userName}/{userName}.webp", fps=24, quality=quality)
         creationTime = datetime.now().strftime("%m-%d_%H.%M")
         renamedFile = f"userFiles/{userName}/{userName}_{creationTime}.webp"
+        if os.path.exists(renamedFile):
+            os.remove(renamedFile)
         os.rename(output_file, renamedFile)
 
         SetCookedStatus(userName)
