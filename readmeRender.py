@@ -113,17 +113,6 @@ def SetCookedStatus(userName):
         except Exception as e:
             print("Error while deleting old readme:", e)
 
-def cleanAfterCook(userName):
-    shutil.rmtree(f"userFiles/{userName}/resourses", ignore_errors=True)
-    if os.path.exists(f"userFiles/{userName}/{userName}.html"):
-        os.remove(f"userFiles/{userName}/{userName}.html")
-    if os.path.exists(f"userFiles/{userName}/{userName}.webm"):
-        os.remove(f"userFiles/{userName}/{userName}.webm")
-    if os.path.exists(f"userFiles/{userName}/{userName}_interpolated.webm"):
-        os.remove(f"userFiles/{userName}/{userName}_interpolated.webm")
-    if os.path.exists(f"userFiles/{userName}/{userName}_cutted.webm"):
-        os.remove(f"userFiles/{userName}/{userName}_cutted.webm")
-
 def randomword(length):
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for _ in range(length))
@@ -247,7 +236,6 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, quality):
 
 
                 SetCookedStatus(userName)
-                cleanAfterCook(userName)
                 ReadmeDatabase.SetCurrentReadme(userName, f"userFiles/{userName}/{userName}_{creationTime}.webp")
                 return
 
@@ -272,7 +260,6 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, quality):
         os.rename(output_file, renamedFile)
 
         SetCookedStatus(userName)
-        cleanAfterCook(userName)
         ReadmeDatabase.SetCurrentReadme(userName, renamedFile)
 
 
