@@ -239,8 +239,6 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, quality):
             page.close()
             if not IsPhoto: page.video.save_as(output_file)  # сохраняем в нужный файл
             browser.close()
-            print("Готово!", output_file)
-            print("Страница загрузужалась:", loadingTime, "сек")
 
         while not os.path.exists(f"userFiles/{userName}/{userName}.webm"):
             time.sleep(0.1)
