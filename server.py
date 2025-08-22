@@ -90,18 +90,20 @@ def myReadme():
         return gotoStatusStream(person)
 
 
-    print("ReadmeDatabase.GetCurrentReadme(person) is not None: ", ReadmeDatabase.GetCurrentReadme(person) is not None)
-    print("os.path.exists(ReadmeDatabase.GetCurrentReadme(person)): ", not os.path.exists(ReadmeDatabase.GetCurrentReadme(person)))
+    previousFileNotExist = (ReadmeDatabase.GetCurrentReadme(person) is not None and not os.path.exists(ReadmeDatabase.GetCurrentReadme(person)))
 
-    prevoiusFileNotExist = (ReadmeDatabase.GetCurrentReadme(person) is not None and not os.path.exists(ReadmeDatabase.GetCurrentReadme(person)))
-    if not ReadmeDatabase.IsFreshReadme(person) or prevoiusFileNotExist:
-        StartCreatingReadme(ReadmeOptions)
-        if ReadmeOptions.noCache or prevoiusFileNotExist:
-            return gotoStatusStream(person)
-        else:
-            return send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/webp")
-    else:
+    if ReadmeDatabase.IsFreshReadme(person) and not previousFileNotExist and not ReadmeOptions.noCache:
         return send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/apng")
+
+
+    StartCreatingReadme(ReadmeOptions)
+    return (
+        gotoStatusStream(person)
+        if ReadmeOptions.noCache or previousFileNotExist
+        else send_file(
+            ReadmeDatabase.GetCurrentReadme(person), mimetype="image/webp"
+        )
+    )
 
 
 def event_stream(userName):
