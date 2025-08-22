@@ -114,7 +114,8 @@ class ReadmeDatabase:
     @staticmethod
     def GetReadmeLineOptions(userName):
         if not ReadmeDatabase.IsUserExists(userName): return None
-        return DictToNameSpace(Users.find_one({"username": userName}).get("options"))
+        options = Users.find_one({"username": userName}).get("options")
+        return None if options is None else DictToNameSpace(options)
 
 
 

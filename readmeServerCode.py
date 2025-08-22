@@ -46,6 +46,8 @@ def BackgroundUpdater():
                 
             ReadmeDatabase.SetCooked(userName, False)
             ReadmeOptions = ReadmeDatabase.GetReadmeLineOptions(user.get("username"))
+            if ReadmeOptions is None:
+                continue
 
             readmeRender.record_apng(ReadmeOptions.person,
                                     {"width": ReadmeOptions.width, "height": ReadmeOptions.height},
