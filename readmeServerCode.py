@@ -118,7 +118,7 @@ def importApp(app):
 
         if ReadmeOptions.length is None and not ReadmeOptions.IsPhoto:
             if ReadmeDatabase.IsCooked(person):
-                return send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/apng")
+                return send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/webp")
             return "Please Set Length of a video", 423
 
         if not ReadmeDatabase.IsCooked(person) and type(ReadmeDatabase.GetCurrentReadme(person)) != str and not ReadmeOptions.noCache:
@@ -129,7 +129,7 @@ def importApp(app):
         print("previousFileNotExist:", previousFileNotExist)
 
         if ReadmeDatabase.IsFreshReadme(person) and not previousFileNotExist and not ReadmeOptions.noCache:
-            return send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/apng")
+            return send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/webp")
 
 
         StartCreatingReadme(ReadmeOptions)
