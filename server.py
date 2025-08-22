@@ -113,6 +113,16 @@ def event_stream(userName):
             time.sleep(1)
     yield f"Stream closed. If you want to know more, please refresh the page\n"
 
+@app.route('/myReadmeSize', methods=['GET'])
+def myReadmeSize():
+    userName = request.args.get('person')
+    filePath = ReadmeDatabase.GetCurrentReadme(userName)
+    if ReadmeDatabase.IsUserExists(userName) and filePath is not None:
+        return f"\"{filePath}\" is:<br><b>{os.path.getsize(filePath)/1024/1024:.2f} MB</b><br><br>( {os.path.getsize(filePath)} bytes )"
+    return "User Or File Not Found"
+
+
+
 @app.route('/readmeStatus', methods=['GET'])
 def readmeStatus():
     userName = request.args.get('person')
