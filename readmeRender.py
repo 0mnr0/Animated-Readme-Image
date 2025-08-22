@@ -22,6 +22,8 @@ import os
 isLinux = os.name == "posix"
 if not os.path.exists("userFiles"):
     os.mkdir("userFiles")
+if not os.path.exists("video_temp"):
+    os.mkdir("video_temp")
 
 def webm_to_webp(input_file: str, output_file: str, fps: int = 24, quality: int = 80):
     """
@@ -83,7 +85,6 @@ def cutVideo(input_file, output_file, start_time):
 def YourselfCleaner(userName, output_file):
     cleanFiles = [
         output_file,
-        f"userFiles/{userName}/{userName}.webp",
         f"userFiles/{userName}/{userName}_interpolated.webm",
         f"userFiles/{userName}/{userName}_cutted.webm",
     ]
@@ -101,11 +102,18 @@ def SetCookedStatus(userName):
     ReadmeDatabase.SetReadmeState(userName, "Cooked")
     ReadmeDatabase.SetCooked(userName, True)
 
+    oldReadmePath = ReadmeDatabase.GetCurrentReadme(userName)
+    if oldReadmePath is not None:
+        try:
+            os.remove(oldReadmePath)
+        except Exception as e:
+            print("Error while deleting old readme:", e)
+
 
 
 def randomword(length):
-   letters = string.ascii_lowercase
-   return ''.join(random.choice(letters) for i in range(length))
+    letters = string.ascii_lowercase
+    return ''.join(random.choice(letters) for _ in range(length))
 
 
 def GetCookedFile(userName, debug):
@@ -147,7 +155,6 @@ def GetCookedFile(userName, debug):
             # заменить src в html
             el["src"] = os.path.abspath(f"userFiles/{userName}/resourses/{filename}")
         except Exception as e:
-            raise e
             print(f"Не удалось скачать {url}: {e}")
 
     with open(f"userFiles/{userName}/{userName}.html", "w", encoding="utf-8") as f:
@@ -218,8 +225,12 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, quality):
                 ReadmeDatabase.SetReadmeState(userName, f"[Step 6/{MaxSteps}] Captured. Saving screenshot to webp...")
                 img = Image.open(io.BytesIO(buffer)).convert("RGB")
                 img.save(f"userFiles/{userName}/{userName}.webp", "webp")
+                creationTime = datetime.now().strftime("%Y-%m-%d %H:%M")
+                os.rename(f"userFiles/{userName}/{userName}.webp", f"userFiles/{userName}/{userName}_{creationTime}.webp")
+
+
                 SetCookedStatus(userName)
-                ReadmeDatabase.SetCurrentReadme(userName, f"userFiles/{userName}/{userName}.webp")
+                ReadmeDatabase.SetCurrentReadme(userName, f"userFiles/{userName}/{userName}_{creationTime}.webp")
                 return
 
             recordStartTime = time.time()
@@ -238,9 +249,12 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, quality):
         output_file = cutVideo(output_file, f"userFiles/{userName}/{userName}_cutted.webm", loadingTime)
         ReadmeDatabase.SetReadmeState(userName, f"[Step 7/{MaxSteps}] Converting into animated image...")
         output_file = webm_to_webp(output_file, f"userFiles/{userName}/{userName}.webp", fps=24, quality=quality)
+        creationTime = datetime.now().strftime("%m-%d_%H:%M")
+        renamedFile = f"userFiles/{userName}/{userName}_{creationTime}.webp"
+        os.rename(output_file, renamedFile)
 
         SetCookedStatus(userName)
-        ReadmeDatabase.SetCurrentReadme(userName, output_file)
+        ReadmeDatabase.SetCurrentReadme(userName, renamedFile)
 
 
     except Exception as e:

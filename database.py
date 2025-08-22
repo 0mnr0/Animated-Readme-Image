@@ -76,7 +76,6 @@ class ReadmeDatabase:
 
     @staticmethod
     def IsFreshReadme(userName):
-        print("Is User Exists: ", ReadmeDatabase.IsUserExists(userName))
         if not ReadmeDatabase.IsUserExists(userName): return False
         UserObject = Users.find_one({"username": userName})
         dt = datetime.strptime(UserObject.get("ReadmeTime"), "%Y-%m-%d %H:%M")

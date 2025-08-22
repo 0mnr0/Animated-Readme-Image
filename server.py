@@ -1,4 +1,5 @@
 import time
+import os
 
 from flask import *
 import flask_cors
@@ -68,27 +69,37 @@ def myReadme():
 
         return returnStr, 403
 
-    if type(ReadmeOptions.lockfile) == str:
-        return send_file(ReadmeOptions.lockfile, mimetype="image/webp")
 
-    print("ReadmeOptions: ", ReadmeOptions)
-    if ReadmeOptions.length is None and not ReadmeOptions.IsPhoto:
-        if ReadmeDatabase.IsCooked(person):
-            return send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/apng")
-        return "Please Set Length of a video", 423
-
-
+    print("IsUserExists:", ReadmeDatabase.IsUserExists(person))
     if not ReadmeDatabase.IsUserExists(person):
         ReadmeDatabase.CreateNewUser(person)
         StartCreatingReadme(ReadmeOptions)
         return gotoStatusStream(person)
 
-    if not ReadmeDatabase.IsCooked(person) and type(ReadmeDatabase.GetCurrentReadme(person)) != str:
+
+    if type(ReadmeOptions.lockfile) == str:
+        return send_file(ReadmeOptions.lockfile, mimetype="image/webp")
+
+
+    if ReadmeOptions.length is None and not ReadmeOptions.IsPhoto:
+        if ReadmeDatabase.IsCooked(person):
+            return send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/apng")
+        return "Please Set Length of a video", 423
+
+    if not ReadmeDatabase.IsCooked(person) and type(ReadmeDatabase.GetCurrentReadme(person)) != str and not ReadmeOptions.noCache:
         return gotoStatusStream(person)
 
-    if not ReadmeDatabase.IsFreshReadme(person) or ReadmeOptions.noCache:
+
+    print("ReadmeDatabase.GetCurrentReadme(person) is not None: ", ReadmeDatabase.GetCurrentReadme(person) is not None)
+    print("os.path.exists(ReadmeDatabase.GetCurrentReadme(person)): ", not os.path.exists(ReadmeDatabase.GetCurrentReadme(person)))
+
+    prevoiusFileNotExist = (ReadmeDatabase.GetCurrentReadme(person) is not None and not os.path.exists(ReadmeDatabase.GetCurrentReadme(person)))
+    if not ReadmeDatabase.IsFreshReadme(person) or prevoiusFileNotExist:
         StartCreatingReadme(ReadmeOptions)
-        return gotoStatusStream(person)
+        if ReadmeOptions.noCache or prevoiusFileNotExist:
+            return gotoStatusStream(person)
+        else:
+            return send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/webp")
     else:
         return send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/apng")
 
