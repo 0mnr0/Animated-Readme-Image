@@ -47,7 +47,7 @@
 | `type` | Specify you need an animated or static image | video | ```image \| video \| none``` |
 | `fps` | (CURRENTLY DISABLED). Specify max fps for animation (MAX: 24) | 24 | >= 1 |
 | `nocache` | Disable cache to "recook" your layout file| false | ```true \| false \| none``` |
-| `length` | length of your animation (min: 0s | max: 30s) | - | ```>0 & <30``` |
+| `length` | length of your animation (min: 0s \| max: 30s) | - | ```>0 & <30``` |
 | `quality` | Specify the quality of the output file (JPG format) | 90 | ```>= 0 & <= 100``` |
 
 > [!CAUTION]
