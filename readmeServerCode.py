@@ -10,15 +10,12 @@ import gitReader
 RECREATION_TIME = ReadmeRefreshInterval_Minutes  # Minutes
 
 WHITELISTED_USERS = [
-    "0mnr0"
-]
-
-WHITELIST_SOON = [
     "cyrsiansk",
     "AysCRvbc",
     "dinalt",
     "kihaas",
-    "Kekovich-kw"
+    "Kekovich-kw",
+    "0mnr0"
 ]
 
 RECREATION_TIME *= 60  # Convert into minutes
@@ -89,12 +86,6 @@ def importApp(app):
 
         if person != "0mnr0":
             returnStr = "Вы должны быть в белом списке чтобы получить свой readme."
-
-            if person in WHITELIST_SOON:
-                returnStr += " Скоро я разрешу доступ к api этим людям:<br><br>"
-                for _user_ in WHITELIST_SOON:
-                    returnStr += f" > {_user_}<br>"
-
             return returnStr, 403
 
         if not ReadmeOptions.lockfile:
