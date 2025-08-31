@@ -7,8 +7,7 @@ from database import *
 from threading import Thread
 import gitReader
 
-RECREATION_TIME = ReadmeRefreshInterval_Minutes # Minutes
-
+RECREATION_TIME = ReadmeRefreshInterval_Minutes  # Minutes
 
 WHITELISTED_USERS = [
     "0mnr0"
@@ -22,20 +21,20 @@ WHITELIST_SOON = [
     "Kekovich-kw"
 ]
 
+RECREATION_TIME *= 60  # Convert into minutes
 
-RECREATION_TIME *= 60 # Convert into minutes
+
 def BackgroundUpdater():
     if (
-        RECREATION_TIME == False
-        or RECREATION_TIME == 0
-        or RECREATION_TIME is None
-        or RECREATION_TIME == -1
+            RECREATION_TIME == False
+            or RECREATION_TIME == 0
+            or RECREATION_TIME is None
+            or RECREATION_TIME == -1
     ): return
-
 
     isSomeOneCooked = False
     while True:
-        time.sleep(20*60 if isSomeOneCooked else RECREATION_TIME)
+        time.sleep(20 * 60 if isSomeOneCooked else RECREATION_TIME)
 
         for user in ReadmeDatabase.GetAllUsers():
             userName = user.get("username")
@@ -43,23 +42,23 @@ def BackgroundUpdater():
             isSomeOneCooked = ReadmeDatabase.IsAnyOneCooking()
             if isSomeOneCooked:
                 continue
-                
+
             ReadmeDatabase.SetCooked(userName, False)
             ReadmeOptions = ReadmeDatabase.GetReadmeLineOptions(user.get("username"))
             if ReadmeOptions is None:
                 continue
 
             readmeRender.record_apng(ReadmeOptions.person,
-                                    {"width": ReadmeOptions.width, "height": ReadmeOptions.height},
-                                    duration=ReadmeOptions.length,
-                                    IsPhoto=ReadmeOptions.IsPhoto,
-                                    debug=ReadmeOptions.debug,
-                                    quality=ReadmeOptions.quality)
+                                     {"width": ReadmeOptions.width, "height": ReadmeOptions.height},
+                                     duration=ReadmeOptions.length,
+                                     IsPhoto=ReadmeOptions.IsPhoto,
+                                     debug=ReadmeOptions.debug,
+                                     quality=ReadmeOptions.quality)
             time.sleep(3)
 
-#bgCooker = Thread(target=BackgroundUpdater)
-#bgCooker.start()
 
+# bgCooker = Thread(target=BackgroundUpdater)
+# bgCooker.start()
 
 
 def importApp(app):
@@ -72,7 +71,7 @@ def importApp(app):
             readmeRender.record_apng(ReadmeOptions.person,
                                      {"width": ReadmeOptions.width, "height": ReadmeOptions.height},
                                      duration=ReadmeOptions.length,
-                                     IsPhoto = ReadmeOptions.IsPhoto,
+                                     IsPhoto=ReadmeOptions.IsPhoto,
                                      debug=ReadmeOptions.debug,
                                      quality=ReadmeOptions.quality)
 
@@ -98,53 +97,45 @@ def importApp(app):
 
             return returnStr, 403
 
-
-
-
         if not ReadmeOptions.lockfile:
             SavingReadmeOptions = SimpleNamespace(**vars(ReadmeOptions))
             SavingReadmeOptions.noCache = False
-            ReadmeDatabase.UpdateReadmeLineOptions(person, SavingReadmeOptions) # Save Options to Auto Update
+            ReadmeDatabase.UpdateReadmeLineOptions(person, SavingReadmeOptions)  # Save Options to Auto Update
 
         if not ReadmeDatabase.IsUserExists(person):
             ReadmeDatabase.CreateNewUser(person)
             StartCreatingReadme(ReadmeOptions)
             return gotoStatusStream(person)
 
-
         if type(ReadmeOptions.lockfile) == str:
             return send_file(ReadmeOptions.lockfile, mimetype="image/webp")
 
-
         if ReadmeOptions.length is None and not ReadmeOptions.IsPhoto:
             if ReadmeDatabase.IsCooked(person):
-                return send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/webp")
+                return send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/apng")
             return "Please Set Length of a video", 423
 
-        if not ReadmeDatabase.IsCooked(person) and type(ReadmeDatabase.GetCurrentReadme(person)) != str and not ReadmeOptions.noCache:
+        if not ReadmeDatabase.IsCooked(person) and type(
+                ReadmeDatabase.GetCurrentReadme(person)) != str and not ReadmeOptions.noCache:
             return gotoStatusStream(person)
 
-
-        previousFileNotExist = (ReadmeDatabase.GetCurrentReadme(person) is not None and not os.path.exists(ReadmeDatabase.GetCurrentReadme(person)))
+        previousFileNotExist = (ReadmeDatabase.GetCurrentReadme(person) is not None and not os.path.exists(
+            ReadmeDatabase.GetCurrentReadme(person)))
         print("previousFileNotExist:", previousFileNotExist)
 
-        if ReadmeDatabase.IsFreshReadme(person) and not previousFileNotExist and not ReadmeOptions.noCache:
-            return send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/webp")
-
+        try:
+            if ReadmeDatabase.IsFreshReadme(person) and not previousFileNotExist and not ReadmeOptions.noCache:
+                return send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/apng")
+        except:
+            pass
 
         StartCreatingReadme(ReadmeOptions)
 
-
         if ReadmeOptions.noCache or previousFileNotExist:
             return gotoStatusStream(person)
-        else:
-            response = make_response(send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/webp"))
-            response.headers["Cache-Control"] = "public, max-age=3600"
-            return response
-
-
-
-
+        response = make_response(send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/webp"))
+        response.headers["Cache-Control"] = "public, max-age=3600"
+        return response
 
     def event_stream(userName):
         if ReadmeDatabase.IsUserExists(userName):
@@ -158,15 +149,19 @@ def importApp(app):
         userName = request.args.get('person')
         filePath = ReadmeDatabase.GetCurrentReadme(userName)
         if ReadmeDatabase.IsUserExists(userName) and filePath is not None:
-            return f"\"{filePath}\" is:<br><b>{os.path.getsize(filePath)/1024/1024:.2f} MB</b><br><br>( {os.path.getsize(filePath)} bytes )"
+            return f"\"{filePath}\" is:<br><b>{os.path.getsize(filePath) / 1024 / 1024:.2f} MB</b><br><br>( {os.path.getsize(filePath)} bytes )"
         return "User Or File Not Found"
 
     @app.route('/time', methods=['GET'])
     def myReadmeTime():
         return datetime.now().strftime("%m-%d_%H:%M")
 
-
     @app.route('/readmeStatus', methods=['GET'])
     def readmeStatus():
         userName = request.args.get('person')
-        return Response(event_stream(userName), mimetype="text/event-stream", headers={"Cache-Control": "no-cache", 'X-Accel-Buffering': 'no'})
+        return Response(event_stream(userName), mimetype="text/event-stream",
+                        headers={"Cache-Control": "no-cache", 'X-Accel-Buffering': 'no'})
+
+
+def SetWorkingDir(path):
+    os.chdir(path)
