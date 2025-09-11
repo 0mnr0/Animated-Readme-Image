@@ -169,7 +169,6 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, quality):
         MaxSteps = 6 if IsPhoto else 7
         print("IN ARGS:",userName, WidthAndHeight, duration, IsPhoto, debug)
         # WidthAndHeight = {"width": 910, "height": 513}
-        previousReadmePath = ReadmeDatabase.GetCurrentReadme(userName)
 
 
         ReadmeDatabase.SetCooked(userName, False)
@@ -193,7 +192,6 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, quality):
 
 
         ReadmeDatabase.SetReadmeState(userName, f"[Step 3/{MaxSteps}] Headless Browser Loading...")
-        loadingTime = 0
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True, args=[
                 '--disable-gpu',
@@ -206,7 +204,10 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, quality):
             ReadmeDatabase.SetReadmeState(userName, f"[Step 4/{MaxSteps}] Opened layout, waiting for network idle...")
             globalStartTime = time.time()
             context = browser.new_context(
-                viewport=WidthAndHeight,
+                viewport={
+                    "width": WidthAndHeight["width"]+2,
+                    "height": WidthAndHeight["height"]
+                },
                 record_video_dir="video_temp",
                 record_video_size=WidthAndHeight,
             )
@@ -219,6 +220,7 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, quality):
                 page.goto(f"file://{html_file}")
             time.sleep(2)
             ReadmeDatabase.SetReadmeState(userName, f"[Step 5/{MaxSteps}] Recording... ")
+
             page.evaluate("""
                 document.querySelectorAll('video').forEach(v => { v.currentTime = 0; v.play(); });
             """)
