@@ -68,7 +68,6 @@ def importApp(app):
 
     def StartCreatingReadme(ReadmeOptions):
         def runInBg(ReadmeOptions):
-            print("ReadmeOptions:", ReadmeOptions)
             readmeRender.record_apng(ReadmeOptions.person,
                                      {"width": ReadmeOptions.width, "height": ReadmeOptions.height},
                                      duration=ReadmeOptions.length,
@@ -107,7 +106,7 @@ def importApp(app):
 
         if ReadmeOptions.length is None and not ReadmeOptions.IsPhoto:
             if ReadmeDatabase.IsCooked(person):
-                return send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/apng")
+                return send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/webp")
             return "Please Set Length of a video", 423
 
         if not ReadmeDatabase.IsCooked(person) and type(
@@ -120,7 +119,7 @@ def importApp(app):
 
         try:
             if ReadmeDatabase.IsFreshReadme(person) and not previousFileNotExist and not ReadmeOptions.noCache:
-                return send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/apng")
+                return send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/webp")
         except:
             pass
 
