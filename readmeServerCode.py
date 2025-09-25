@@ -7,6 +7,10 @@ from database import *
 from threading import Thread
 import gitReader
 
+if not os.path.exists("ffmpeg.exe") and os.name == "nt":
+    raise Exception("ffmpeg.exe not found")
+
+
 RECREATION_TIME = ReadmeRefreshInterval_Minutes  # Minutes
 
 WHITELISTED_USERS = [
