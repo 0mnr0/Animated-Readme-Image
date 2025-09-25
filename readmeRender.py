@@ -39,7 +39,12 @@ def webm_to_webp(input_file: str, output_file: str, fps: int = 24, quality: int 
         "ffmpeg", "-y",
         "-i", input_file,
         "-vf", f"fps={fps},scale=-1:-1:flags=lanczos,format=rgb24",
+        "-pix_fmt", "yuv420p",
+        "-preset", "picture",
         "-loop", "0",
+        "-g", "9999",
+        "-map_metadata", "-1",
+        "-an",
         "-q:v", str(quality),
         output_file
     ]
