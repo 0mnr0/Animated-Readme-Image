@@ -60,6 +60,14 @@ def BackgroundUpdater():
 
 # bgCooker = Thread(target=BackgroundUpdater)
 # bgCooker.start()
+def generate_chunks(file_path, chunk_size=2048 * 1024):  # 512 KB
+    print("Generating chunks...")
+    with open(file_path, "rb") as f:
+        while True:
+            data = f.read(chunk_size)
+            if not data:
+                break
+            yield data
 
 
 def importApp(app):
@@ -82,44 +90,60 @@ def importApp(app):
         ReadmeOptions = gitReader.argsCollector(request.args)
         person = ReadmeOptions.person
 
-        # Пока всё сырое, даже в своём readme я зафиксировал фото, мне ещё нужно чуть чуть времени сделать всё стабильнее и потом пустить в ход.
-        # Скорее всего успею к 1му сентября
         if person is None:
             return "Please Specify Person", 400
 
         if person != "0mnr0":
-            returnStr = "Вы должны быть в белом списке чтобы получить свой readme."
-            return returnStr, 403
+            return "Вы должны быть в белом списке чтобы получить свой readme.", 403
 
         if not ReadmeOptions.lockfile:
             SavingReadmeOptions = SimpleNamespace(**vars(ReadmeOptions))
             SavingReadmeOptions.noCache = False
-            ReadmeDatabase.UpdateReadmeLineOptions(person, SavingReadmeOptions)  # Save Options to Auto Update
+            ReadmeDatabase.UpdateReadmeLineOptions(person, SavingReadmeOptions)
 
         if not ReadmeDatabase.IsUserExists(person):
             ReadmeDatabase.CreateNewUser(person)
             StartCreatingReadme(ReadmeOptions)
             return gotoStatusStream(person)
 
-        if type(ReadmeOptions.lockfile) == str:
-            return send_file(ReadmeOptions.lockfile, mimetype="image/webp")
+        if isinstance(ReadmeOptions.lockfile, str):
+            return Response(
+                generate_chunks(ReadmeOptions.lockfile),
+                mimetype="image/webp",
+                direct_passthrough=True
+            )
 
         if ReadmeOptions.length is None and not ReadmeOptions.IsPhoto:
             if ReadmeDatabase.IsCooked(person):
-                return send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/webp")
+                file_path = ReadmeDatabase.GetCurrentReadme(person)
+                return Response(
+                    generate_chunks(file_path),
+                    mimetype="image/webp",
+                    direct_passthrough=True
+                )
             return "Please Set Length of a video", 423
 
-        if not ReadmeDatabase.IsCooked(person) and type(
-                ReadmeDatabase.GetCurrentReadme(person)) != str and not ReadmeOptions.noCache:
+        if (not ReadmeDatabase.IsCooked(person)
+                and not isinstance(ReadmeDatabase.GetCurrentReadme(person), str)
+                and not ReadmeOptions.noCache):
             return gotoStatusStream(person)
 
-        previousFileNotExist = (ReadmeDatabase.GetCurrentReadme(person) is not None and not os.path.exists(
-            ReadmeDatabase.GetCurrentReadme(person)))
+        previousFileNotExist = (
+                ReadmeDatabase.GetCurrentReadme(person) is not None
+                and not os.path.exists(ReadmeDatabase.GetCurrentReadme(person))
+        )
         print("previousFileNotExist:", previousFileNotExist)
 
         try:
-            if ReadmeDatabase.IsFreshReadme(person) and not previousFileNotExist and not ReadmeOptions.noCache:
-                return send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/webp")
+            if (ReadmeDatabase.IsFreshReadme(person)
+                    and not previousFileNotExist
+                    and not ReadmeOptions.noCache):
+                file_path = ReadmeDatabase.GetCurrentReadme(person)
+                return Response(
+                    generate_chunks(file_path),
+                    mimetype="image/webp",
+                    direct_passthrough=True
+                )
         except:
             pass
 
@@ -127,7 +151,13 @@ def importApp(app):
 
         if ReadmeOptions.noCache or previousFileNotExist:
             return gotoStatusStream(person)
-        response = make_response(send_file(ReadmeDatabase.GetCurrentReadme(person), mimetype="image/webp"))
+
+        file_path = ReadmeDatabase.GetCurrentReadme(person)
+        response = Response(
+            generate_chunks(file_path),
+            mimetype="image/webp",
+            direct_passthrough=True
+        )
         response.headers["Cache-Control"] = "public, max-age=3600"
         return response
 
