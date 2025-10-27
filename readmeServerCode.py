@@ -49,11 +49,14 @@ def BackgroundUpdater():
             if ReadmeOptions is None:
                 continue
 
+
+            #this is background re-creator
             readmeRender.record_apng(ReadmeOptions.person,
                                      {"width": ReadmeOptions.width, "height": ReadmeOptions.height},
                                      duration=ReadmeOptions.length,
                                      IsPhoto=ReadmeOptions.IsPhoto,
                                      debug=ReadmeOptions.debug,
+                                     debugVideoName=ReadmeOptions.debugvideoname,
                                      quality=ReadmeOptions.quality)
             time.sleep(3)
 
@@ -81,6 +84,7 @@ def importApp(app):
                                      duration=ReadmeOptions.length,
                                      IsPhoto=ReadmeOptions.IsPhoto,
                                      debug=ReadmeOptions.debug,
+                                     debugVideoName=ReadmeOptions.debugvideoname,
                                      quality=ReadmeOptions.quality)
 
         Thread(target=runInBg, args=(ReadmeOptions,)).start()

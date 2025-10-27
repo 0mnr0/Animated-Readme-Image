@@ -14,7 +14,10 @@ from playwright.sync_api import sync_playwright
 # C:\Users\savel\PyCharmProjects\dsvl0.space\.venv\Lib\site-packages\playwright\driver\package\lib\server\chromium
 # Lunix Servers Path: /usr/local/lib/python3.12/dist-packages/playwright/driver/package/lib/server/chromium
 # videoRecorder.js
-# const args = `... -b:v 1M` - -b:v 10M`
+#
+# Remove: "-speed 8" | "-analyzeduration" | -probesize | -fpsprobesize | -avioflags direct
+# Replace: "-b:v 12M" -> "-b:v 0" | "-crf 8" -> "-crf 18" | (Optional: "-c:v vp8" -> "-c:v libvpx-vp9")
+# IN: const args = `... -b:v 1M` - -b:v 10M`
 
 import time
 import os
@@ -169,7 +172,8 @@ def GetCookedFile(userName, debug):
     return file
 
 
-def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, quality):
+def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, debugVideoName, quality):
+
     try:
         MaxSteps = 6 if IsPhoto else 7
         print("IN ARGS:",userName, WidthAndHeight, duration, IsPhoto, debug)
@@ -196,6 +200,14 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, quality):
 
         YourselfCleaner(userName, output_file)
 
+        if debugVideoName is not None:
+            html = open(html_file, 'r').read()
+            soup = BeautifulSoup(html, "html.parser")
+            for video in soup.find_all("video"):
+                video["src"] = debugVideoName
+
+            with open(html_file, "w") as f:
+                f.write(soup.prettify())
 
         ReadmeDatabase.SetReadmeState(userName, f"[Step 3/{MaxSteps}] Headless Browser Loading...")
         loadingTime = 0
@@ -225,7 +237,7 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, quality):
             time.sleep(2)
             ReadmeDatabase.SetReadmeState(userName, f"[Step 5/{MaxSteps}] Recording... ")
             page.evaluate("""
-                document.querySelectorAll('video').forEach(v => { v.currentTime = 0; v.play(); });
+                document.querySelectorAll('video').forEach(v => { v.currentTime = 0; v.muted = false; v.volume = 0.45; v.play(); });
             """)
 
             if IsPhoto:

@@ -13,6 +13,8 @@ def argsCollector(inputArgs):
         # Если случайно передали request, возьмём request.args
         inputArgs = inputArgs.args
 
+
+    print("inputArgs: ", inputArgs, inputArgs.get('debugvideoname'))
     args = {
         "person": inputArgs.get('person'),
         "width": inputArgs.get('width'),
@@ -22,6 +24,7 @@ def argsCollector(inputArgs):
         "noCache": inputArgs.get('nocache'),
         "length": inputArgs.get('length'),
         "debug": inputArgs.get('debug'),
+        "debugvideoname": inputArgs.get('debugvideoname'),
         "quality": inputArgs.get('quality'),
         "lockfile": inputArgs.get('lockfile'),
     }
