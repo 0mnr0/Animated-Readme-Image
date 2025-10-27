@@ -14,7 +14,6 @@ def argsCollector(inputArgs):
         inputArgs = inputArgs.args
 
 
-    print("inputArgs: ", inputArgs, inputArgs.get('debugvideoname'))
     args = {
         "person": inputArgs.get('person'),
         "width": inputArgs.get('width'),

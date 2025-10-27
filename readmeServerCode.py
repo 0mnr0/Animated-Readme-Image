@@ -63,7 +63,7 @@ def BackgroundUpdater():
 
 # bgCooker = Thread(target=BackgroundUpdater)
 # bgCooker.start()
-def generate_chunks(file_path, chunk_size=2048 * 1024):  # 512 KB
+def generate_chunks(file_path, chunk_size=1024 * 1024):  # 512 KB
     print("Generating chunks...")
     with open(file_path, "rb") as f:
         while True:
