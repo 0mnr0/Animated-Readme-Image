@@ -111,20 +111,25 @@ def importApp(app):
             return gotoStatusStream(person)
 
         if isinstance(ReadmeOptions.lockfile, str):
-            return Response(
+            response = Response(
                 generate_chunks(ReadmeOptions.lockfile),
                 mimetype="image/webp",
                 direct_passthrough=True
             )
+            response.headers["Cache-Control"] = "public, max-age=3600"
+            return response
 
         if ReadmeOptions.length is None and not ReadmeOptions.IsPhoto:
             if ReadmeDatabase.IsCooked(person):
                 file_path = ReadmeDatabase.GetCurrentReadme(person)
-                return Response(
+                response = Response(
                     generate_chunks(file_path),
                     mimetype="image/webp",
                     direct_passthrough=True
                 )
+                response.headers["Cache-Control"] = "public, max-age=3600"
+                return response
+
             return "Please Set Length of a video", 423
 
         if (not ReadmeDatabase.IsCooked(person)
@@ -136,18 +141,19 @@ def importApp(app):
                 ReadmeDatabase.GetCurrentReadme(person) is not None
                 and not os.path.exists(ReadmeDatabase.GetCurrentReadme(person))
         )
-        print("previousFileNotExist:", previousFileNotExist)
 
         try:
             if (ReadmeDatabase.IsFreshReadme(person)
                     and not previousFileNotExist
                     and not ReadmeOptions.noCache):
                 file_path = ReadmeDatabase.GetCurrentReadme(person)
-                return Response(
+                response = Response(
                     generate_chunks(file_path),
                     mimetype="image/webp",
                     direct_passthrough=True
                 )
+                response.headers["Cache-Control"] = "public, max-age=3600"
+                return response
         except:
             pass
 
