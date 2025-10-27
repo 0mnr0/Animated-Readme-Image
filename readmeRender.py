@@ -222,10 +222,11 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, debugVideoNa
             ])
             ReadmeDatabase.SetReadmeState(userName, f"[Step 4/{MaxSteps}] Opened layout, waiting for network idle...")
             globalStartTime = time.time()
+            newWandH = {"width": WidthAndHeight["width"]-1, "height": WidthAndHeight["height"]-1}
             context = browser.new_context(
-                viewport=WidthAndHeight,
+                viewport=newWandH,
                 record_video_dir="video_temp",
-                record_video_size=WidthAndHeight,
+                record_video_size=newWandH,
             )
             page = context.new_page()
 
