@@ -1,15 +1,19 @@
-import subprocess
-from datetime import datetime
-
-import random, string
+import io
+import os
+import random
 import re
 import shutil
-from bs4 import BeautifulSoup
-from PIL import Image
-import io
-from database import *
+import string
+import subprocess
+import time
+
 import requests
+from PIL import Image
+from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
+
+from database import *
+
 # Я изменил битрейт с 1M на 10M:
 # C:\Users\savel\PyCharmProjects\dsvl0.space\.venv\Lib\site-packages\playwright\driver\package\lib\server\chromium
 # Lunix Servers Path: /usr/local/lib/python3.12/dist-packages/playwright/driver/package/lib/server/chromium
@@ -18,9 +22,6 @@ from playwright.sync_api import sync_playwright
 # Remove: "-speed 8" | "-analyzeduration" | -probesize | -fpsprobesize | -avioflags direct
 # Replace: "-b:v 12M" -> "-b:v 0" | "-crf 8" -> "-crf 18" | (Optional: "-c:v vp8" -> "-c:v libvpx-vp9")
 # IN: const args = `... -b:v 1M` - -b:v 10M`
-
-import time
-import os
 
 
 timeFormat = "%m-%d_%H.%M.%S"
@@ -179,7 +180,7 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, debugVideoNa
         print("IN ARGS:",userName, WidthAndHeight, duration, IsPhoto, debug)
         # WidthAndHeight = {"width": 910, "height": 513}
         previousReadmePath = ReadmeDatabase.GetCurrentReadme(userName)
-
+        print("previousReadmePath:", previousReadmePath)
 
         ReadmeDatabase.SetCooked(userName, False)
         ReadmeDatabase.SetReadmeState(userName, f"[Step 1/{MaxSteps}] Cleaning And Preparing...")
@@ -236,6 +237,23 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, debugVideoNa
             except Exception as e:
                 page.goto(f"file://{html_file}")
             time.sleep(2)
+            page.evaluate("""
+                () => {
+                    const videos = document.querySelectorAll('video');
+                    if (!videos.length) return;
+
+                    let endedCount = 0;
+                    videos.forEach(video => {
+                        video.removeAttribute('loop');
+                        video.addEventListener('ended', () => {
+                            endedCount++;
+                            if (endedCount === videos.length) {
+                                window.allVideosEnded = true;
+                            }
+                        });
+                    });
+                }
+                """)
             ReadmeDatabase.SetReadmeState(userName, f"[Step 5/{MaxSteps}] Recording... ")
             page.evaluate("""
                 document.querySelectorAll('video').forEach(v => { v.currentTime = 0; v.muted = false; v.volume = 0.45; v.play(); });
@@ -259,7 +277,10 @@ def record_apng(userName, WidthAndHeight, duration, IsPhoto, debug, debugVideoNa
 
             recordStartTime = time.time()
             loadingTime = recordStartTime - globalStartTime
-            time.sleep(2 if IsPhoto else duration)
+            if IsPhoto or duration!="auto":
+                time.sleep(2 if IsPhoto else duration)
+            else:
+                page.wait_for_function("window.allVideosEnded === true", timeout=180*1000)
             page.close()
             if not IsPhoto: page.video.save_as(output_file)  # сохраняем в нужный файл
             browser.close()

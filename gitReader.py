@@ -29,33 +29,23 @@ def argsCollector(inputArgs):
     }
     args = SimpleNamespace(**args)
 
-    if args.width is not None:
-        args.width = int(args.width)
-    else:
-        args.width = 910
-
-    if args.height is not None:
-        args.height = int(args.height)
-    else:
-        args.height = 513
-
+    args.width = int(args.width) if args.width is not None else 910
+    args.height = int(args.height) if args.height is not None else 513
     if args.fps is not None:
         args.fps = int(args.fps)
 
+
+    args.IsPhoto = args.IsPhoto in ["image", "photo"]
+
     if args.length is not None:
-        args.length = float(args.length)
+        args.length = float(args.length) if args.length != "auto" else "auto"
+    elif not args.IsPhoto: 
+        args.length = "auto"
 
-    args.IsPhoto = (args.IsPhoto == "image" or args.IsPhoto == "photo") # its "type" key, not "isVideo". AND ITS WORKING "AS IS"
 
-    if args.noCache is not None:
-        args.noCache = args.noCache == "true"
-    else:
-        args.noCache = False
+    args.noCache = args.noCache == "true" if args.noCache is not None else False
+    args.debug = args.debug == "true" if args.debug is not None else False
 
-    if args.debug is not None:
-        args.debug = args.debug == "true"
-    else:
-        args.debug = False
 
     if args.quality is not None and str(args.quality).isdigit():
         args.quality = int(args.quality)
