@@ -63,13 +63,14 @@ def BackgroundUpdater():
 
 # bgCooker = Thread(target=BackgroundUpdater)
 # bgCooker.start()
-def generate_chunks(file_path, chunk_size=1024 * 1024):  # 512 KB
+def generate_chunks(file_path, chunk_size=1024 * 256):  # 512 KB
     print("Generating chunks...")
     with open(file_path, "rb") as f:
         while True:
             data = f.read(chunk_size)
             if not data:
                 break
+            time.sleep(0.05)
             yield data
 
 
